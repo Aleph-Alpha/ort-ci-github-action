@@ -211,6 +211,11 @@ inputs:
       By default, the Git short SHA is used.
     required: false
 
+  ort-skip-error-runs:
+    default: ''
+    description: |
+      list the runs that should not exit on error.
+
 outputs:
   evaluator-exit-code:
     description: The exit code of the evaluator CLI command.
@@ -452,6 +457,7 @@ runs:
     - name: Run ORT Analyzer
       id: ort-analyzer
       shell: bash
+      continue-on-error: ${{ contains(inputs.ort-skip-error-runs, 'analyzer') }}
       if: contains(inputs.run, 'analyzer')
       env:
         ORT_ALLOW_DYNAMIC_VERSIONS: ${{ inputs.allow-dynamic-versions }}
@@ -481,6 +487,7 @@ runs:
     - name: Run ORT Scanner
       id: ort-scanner
       shell: bash
+      continue-on-error: ${{ contains(inputs.ort-skip-error-runs, 'scanner') }}
       if: contains(inputs.run, 'scanner')
       run: |
         echo -e "\e[1;33m Running ORT Scanner... "
@@ -516,6 +523,7 @@ runs:
     - name: Run ORT Advisor
       id: ort-advisor
       shell: bash
+      continue-on-error: ${{ contains(inputs.ort-skip-error-runs, 'advisor') }}
       if: contains(inputs.run, 'advisor')
       env:
         ORT_ADVISORS: ${{ inputs.advisors }}
@@ -545,6 +553,7 @@ runs:
     - name: Run ORT Evaluator
       id: ort-evaluator
       shell: bash
+      continue-on-error: ${{ contains(inputs.ort-skip-error-runs, 'evaluator') }}
       if: contains(inputs.run, 'evaluator')
       run: |
         echo -e "\e[1;33m Running ORT Evaluator... "
@@ -574,6 +583,7 @@ runs:
       env:
         ORT_REPORT_FORMATS: ${{ inputs.report-formats }}
         SW_NAME: ${{ inputs.sw-name }}
+      continue-on-error: ${{ contains(inputs.ort-skip-error-runs, 'reporter') }}
       if: contains(inputs.run, 'reporter')
       run: |
         echo -e "\e[1;33m Running ORT Reporter... "
