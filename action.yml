@@ -83,6 +83,7 @@ inputs:
     description: |
       Comma-separated list of ORT results that if exceeding their severity threshold will fail the action.
       Accepted values are '', 'issues', 'violations' or 'issues,violations'.
+      'issues' fails on Advisor or Scanner issues, 'violations' fails on Evaluator violations.
       If empty, then exceeding severity threshold will not fail the action.
     required: false
   http-file-server-url:
@@ -516,10 +517,13 @@ runs:
         -i ${ORT_RESULTS_CURRENT_PATH/$USER/ort} \
         -o ${ORT_RESULTS_PATH/$USER/ort} \
         -f JSON \
-        ${ORT_CLI_SCAN_ARGS}
+        ${ORT_CLI_SCAN_ARGS} || ORT_CLI_SCAN_EXIT_CODE=$? \
+        && ORT_CLI_SCAN_EXIT_CODE="${ORT_CLI_SCAN_EXIT_CODE:-0}" \
+        && echo "exit-code=${ORT_CLI_SCAN_EXIT_CODE}" >> "$GITHUB_OUTPUT"
         [[ -f $ORT_RESULTS_SCANNER_PATH ]] && \
           ln -frs $ORT_RESULTS_SCANNER_PATH $ORT_RESULTS_CURRENT_PATH || \
           echo -e "\e[1;31m File $ORT_RESULTS_SCANNER_PATH not found."
+        [[ $ORT_CLI_SCAN_EXIT_CODE -ne 2 ]] && exit ${ORT_CLI_SCAN_EXIT_CODE} || exit 0
     - name: Run ORT Advisor
       id: ort-advisor
       shell: bash
@@ -654,4 +658,10 @@ runs:
       shell: bash
       run: |
         echo -e "\e[1;31m Failing action as Advisor exceeded severity threshold... "
+        exit 2
+    - name: Conditionally fail action if returned issues from Scanner exceeds severity threshold
+      if: contains(inputs.fail-on, 'issues') && contains(steps.ort-scanner.outputs.exit-code, 2)
+      shell: bash
+      run: |
+        echo -e "\e[1;31m Failing action as Scanner exceeded severity threshold... "
         exit 2
