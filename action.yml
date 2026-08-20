@@ -549,7 +549,7 @@ runs:
         -f JSON \
         ${ORT_CLI_ADVISE_ARGS} || ORT_CLI_ADVISE_EXIT_CODE=$? \
         && ORT_CLI_ADVISE_EXIT_CODE="${ORT_CLI_ADVISE_EXIT_CODE:-0}" \
-        && echo "exit-code=${ORT_CLI_EVALUATE_EXIT_CODE}" >> "$GITHUB_OUTPUT"
+        && echo "exit-code=${ORT_CLI_ADVISE_EXIT_CODE}" >> "$GITHUB_OUTPUT"
         [[ -f $ORT_RESULTS_ADVISOR_PATH ]] && \
           ln -frs $ORT_RESULTS_ADVISOR_PATH $ORT_RESULTS_CURRENT_PATH || \
           echo -e "\e[1;31m File $ORT_RESULTS_ADVISOR_PATH not found."
